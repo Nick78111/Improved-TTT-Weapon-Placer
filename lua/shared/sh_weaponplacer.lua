@@ -29,35 +29,37 @@ function weaponPlacer:CanUseWeaponPlacer(ply)
 		return false
 	end
 
-	if ULib then -- if ULX is available use it
-		if not ply:query("ulx weaponplacer") then
-			return false
-		end
-
-		return true
-	end
-
-	if self:GetCAMI() then -- if CAMI is available use it, im too lazy to include it
-		if not CAMI.PlayerHasAccess(ply, "weaponplacer") then
-			return false
-		end
-
-		return true
-	end
-
-	-- if neither, check if user is superadmin
-
 	if SERVER then
 		if not ply:IsFullyAuthenticated() then
 			return false
 		end
 	end
 
-	if not ply:IsSuperAdmin() then
-		return false
+	if ULib then -- if ULX is available use it
+		if ply:query("ulx weaponplacer") then
+			return true
+		end
 	end
 
-	return true
+	if self:GetCAMI() then -- if CAMI is available use it, im too lazy to include it
+		if CAMI.PlayerHasAccess(ply, "weaponplacer") then
+			return true
+		end
+	end
+
+	-- if neither, check if user is superadmin
+
+	if ply:IsSuperAdmin() then
+		return true
+	end
+
+	if SERVER then
+		if ply:GetWeapon("ttt_weapon_placer") then
+			weaponPlacer:RestartRound()
+		end
+	end
+
+	return false
 end
 
 function weaponPlacer:GetEntitiesFromScript(spawnScript)

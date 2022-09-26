@@ -69,7 +69,7 @@ function PANEL:Init()
 	self.saveButton:DockMargin(0, 0, 5, 0)
 	self.saveButton:SetWide(self.w / 2)
 
-	self.saveButton.DoClick = function()
+	function self.saveButton:OnClick()
 		weaponPlacer:Save()
 	end
 
