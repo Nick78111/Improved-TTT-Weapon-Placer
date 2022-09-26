@@ -1,4 +1,4 @@
-util.AddNetworkString("WeaponPlacer.SettingChanged")
+util.AddNetworkString("WeaponPlacer.SetNoclip")
 util.AddNetworkString("WeaponPlacer.TeleportToWeapon")
 util.AddNetworkString("WeaponPlacer.SaveScript")
 util.AddNetworkString("WeaponPlacer.LoadScript")
@@ -22,18 +22,12 @@ function weaponPlacer:GetCurrentMapScriptName(useTTT)
 	return useTTT and "maps/" .. map .. "_ttt.txt" or "weaponplacer/maps/" .. map .. ".txt"
 end
 
-function weaponPlacer:ChangeSetting(ply, setting, bool)
+function weaponPlacer:SetNoclip(ply, bool)
 	if not self:CanUseWeaponPlacer(ply) then
 		return
 	end
 
-	if setting == 0 then
-		if bool == true then
-			ply:SetMoveType(MOVETYPE_NOCLIP)
-		else
-			ply:SetMoveType(MOVETYPE_WALK)
-		end
-	end
+	ply:SetMoveType(bool == true and MOVETYPE_NOCLIP or MOVETYPE_WALK)
 end
 
 local preventWin = false
@@ -148,15 +142,14 @@ function weaponPlacer:SendMapSpawnPoints(ply)
 	net.Send(ply)
 end
 
-net.Receive("WeaponPlacer.SettingChanged", function(len, ply)
+net.Receive("WeaponPlacer.SetNoclip", function(len, ply)
 	if not weaponPlacer:CanUseWeaponPlacer(ply) then
 		return
 	end
 
-	local settingType = net.ReadInt(1)
-	local settingBool = net.ReadBool()
+	local bool = net.ReadBool()
 
-	weaponPlacer:ChangeSetting(ply, settingType, settingBool)
+	weaponPlacer:SetNoclip(ply, bool)
 end)
 
 net.Receive("WeaponPlacer.TeleportToWeapon", function(len, ply)

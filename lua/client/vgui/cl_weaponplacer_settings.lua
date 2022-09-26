@@ -47,7 +47,7 @@ function PANEL:Init()
 
 	self:CreateSetting("PLAYER", "Enable Noclip", "Enables noclip mode", "Boolean", "noclip", function(pnl, data)
 		local bool = data == 1 and true or false
-		weaponPlacer:ChangeSetting(0, bool)
+		weaponPlacer:SetNoclip(bool)
 		weaponPlacer:SetSetting("noclip", bool)
 	end)
 
@@ -98,7 +98,6 @@ function PANEL:CreateButton(category, text, toolTip)
 	button:SetText(text)
 
 	button.PerformLayout = function(pnl, w, h)
-		print(self:GetCanvas():GetWide())
 		button:SetWide(self:GetCanvas():GetWide())
 		button:SetTall(20)
 	end

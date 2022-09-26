@@ -15,14 +15,13 @@ weaponPlacer.settings = {
 	hideWeapons = false,
 	hidePlayers = false
 }
-print("test")
-function weaponPlacer:ChangeSetting(int, bool)
+
+function weaponPlacer:SetNoclip(bool)
 	if not self:CanUseWeaponPlacer() then
 		return
 	end
 
-	net.Start("WeaponPlacer.SettingChanged")
-		net.WriteInt(int, 1)
+	net.Start("WeaponPlacer.SetNoclip")
 		net.WriteBool(bool)
 	net.SendToServer()
 end
