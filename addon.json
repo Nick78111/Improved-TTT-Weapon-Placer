@@ -1,0 +1,11 @@
+{
+	"title"		:	"Improved TTT Weapon Placer",
+	"type"		:	"tool",
+	"tags"		:	["build"],
+	"ignore"	:	
+	[
+		".git/*",
+		"LICENSE",
+		"README.md"
+	]
+}
