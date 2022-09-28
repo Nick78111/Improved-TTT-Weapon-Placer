@@ -25,6 +25,11 @@ function PANEL:Refresh()
 	end
 end
 
+function PANEL:OnRowSelected(indx, row)
+	local line = self:GetLine(indx)
+	weaponPlacer:SelectClass(line:GetColumnText(2))
+end
+
 function PANEL:OnRowRightClick(lineID, line)
 	local menu = DermaMenu()
 

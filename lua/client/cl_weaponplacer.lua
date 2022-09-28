@@ -198,25 +198,30 @@ function weaponPlacer:SetGhostProp(model)
 	end
 end
 
-function weaponPlacer:SetSelectedClass(class)
-	self.selectedClass = class
-end
+local lastWep = nil
 
-function weaponPlacer:SelectClass(class)
-	if self:GetSetting("spawnAmmo") then
+function weaponPlacer:SelectClass(class, selectAmmo)
+	if selectAmmo or self:GetSetting("spawnAmmo") then
+		lastWep = class
+
 		local spawnableEntity = self:GetWeaponAmmoFromClass(class)
 
 		if spawnableEntity then
-			self:SetSelectedClass(spawnableEntity.class)
+			self.selectedClass = spawnableEntity.class
 			self:SetGhostProp(spawnableEntity.model)
 
 			return
 		end
 	end
 
+	if lastWep then
+		class = lastWep
+		lastWep = nil
+	end
+
 	local spawnableEntity = self:GetSpawnableEntityFromClass(class)
 
-	self:SetSelectedClass(class)
+	self.selectedClass = class
 	self:SetGhostProp(spawnableEntity.model)
 end
 
@@ -231,7 +236,7 @@ function weaponPlacer:CleanUpProps()
 	end
 
 	self:SetGhostProp(nil)
-	self:SetSelectedClass(nil)
+	self.selectedClass = nil
 
 	self.spawnedEntities = {}
 end

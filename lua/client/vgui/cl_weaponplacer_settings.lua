@@ -24,17 +24,15 @@ function PANEL:Init()
 	end)
 
 	self:CreateSetting("WEAPON SPAWNING", "Spawn Ammo", "Spawns the currently selected weapon's ammo", "Boolean", "spawnAmmo", function(pnl, data)
-		weaponPlacer:SetSetting("spawnAmmo", data == 1 and true or false)
+		local bool = data == 1 and true or false
+
+		weaponPlacer:SetSetting("spawnAmmo", bool)
 
 		if not weaponPlacer:GetSelectedClass() then
 			return
 		end
 
-		local id, line = weaponPlacer.menu.entitySelector:GetSelectedLine()
-
-		if line then
-			weaponPlacer:SelectClass(line.data.class)
-		end
+		weaponPlacer:SelectClass(weaponPlacer:GetSelectedClass(), bool)
 	end)
 
 	self:CreateSetting("WEAPON SPAWNING", "Enable Collisions", "Enables collisions with spawned entities (Don't recommend)", "Boolean", "collision", function(pnl, data)
