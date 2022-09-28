@@ -60,7 +60,7 @@ function PANEL:Init()
 	self:CreateSetting("WORLD", "Hide Players", "Hide other players", "Boolean", "hideWeapons", function(pnl, data)
 		local bool = data == 1 and true or false
 		weaponPlacer:SetSetting("hidePlayers", bool)
-		weaponPlacer:SetNoDrawPlayers(bool)
+		weaponPlacer:SetNodrawPlayers(bool)
 	end)
 
 	for name, cat in pairs(self.Categories) do

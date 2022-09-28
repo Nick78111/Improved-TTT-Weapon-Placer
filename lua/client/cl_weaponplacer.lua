@@ -202,36 +202,6 @@ function weaponPlacer:SetSelectedClass(class)
 	self.selectedClass = class
 end
 
-local noDrawWeapons = weaponPlacer:GetSetting("hideWeapons")
-
-function weaponPlacer:SetNoDrawMapWeapons(bool)
-	if noDrawWeapons == bool then
-		return
-	end
-
-	for _, ent in ipairs(ents.GetAll()) do
-		if ent:IsWeapon() or ent.AutoSpawnable then
-			ent:SetNoDraw(bool)
-		end
-	end
-
-	noDrawWeapons = bool
-end
-
-local noDrawPlayers = weaponPlacer:GetSetting("hidePlayers")
-
-function weaponPlacer:SetNoDrawPlayers(bool)
-	if noDrawPlayers == bool then
-		return
-	end
-
-	for _, ply in ipairs(player.GetAll()) do
-		ply:SetNoDraw(bool)
-	end
-
-	noDrawPlayers = bool
-end
-
 function weaponPlacer:SelectClass(class)
 	if self:GetSetting("spawnAmmo") then
 		local spawnableEntity = self:GetWeaponAmmoFromClass(class)
@@ -426,6 +396,49 @@ function weaponPlacer:Load()
 
 	net.Start("WeaponPlacer.LoadScript")
 	net.SendToServer()
+end
+
+hook.Add("PostPlayerDraw", "WeaponPlacerHidePlayers", function(ply)
+	if weaponPlacer:GetSetting("hidePlayers") then
+		ply:SetNoDraw(true)
+	end
+end)
+
+function weaponPlacer:SetNodrawPlayers(bool)
+	for _, ply in ipairs(player.GetAll()) do
+		ply:SetNoDraw(bool)
+	end
+end
+
+function weaponPlacer:SetNoDrawMapWeapons(bool)
+	-- overriding these functions is necessary because if setting nodraw then exiting and re-entering PVS would draw them again
+	-- same for hiding players, hence the use of PostPlayerDraw
+	for _, ent in ipairs(ents.GetAll()) do
+		if bool then
+			if ent:IsWeapon() then
+				ent:SetNoDraw(true)
+				ent.OldDrawWorldModel = ent.DrawWorldModel
+				ent.DrawWorldModel = function()
+					return
+				end
+			elseif ent.AmmoType then
+				ent:SetNoDraw(true)
+				ent.OldDraw = ent.Draw
+				ent.Draw = function()
+					return
+				end
+			end
+		else
+			if ent.OldDrawWorldModel then
+				ent:SetNoDraw(false)
+				ent.DrawWorldModel = ent.OldDrawWorldModel
+			end
+
+			if ent.OldDraw then
+				ent.Draw = ent.OldDraw
+			end
+		end
+	end
 end
 
 net.Receive("WeaponPlacer.SendScript", function()
