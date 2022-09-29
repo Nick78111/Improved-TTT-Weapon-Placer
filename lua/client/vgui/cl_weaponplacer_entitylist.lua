@@ -53,13 +53,11 @@ function PANEL:OnRowRightClick(lineID, line)
 	end):SetIcon("icon16/table_delete.png")
 
 	menu:AddOption("Delete all entities", function()
-		local count = table.Count(weaponPlacer:GetSpawnedEntities())
-
 		weaponPlacer:CleanUpProps()
 		chat.AddText(Color(0, 255, 0), "Weapon Placer: Deleted all entities!")
 	end):SetIcon("icon16/table_delete.png")
 
-	if #self:GetSelected() <= 1 then
+	if #self:GetSelected() == 1 then
 		menu:AddOption("Go To", function()
 			if not weaponPlacer:CanUseWeaponPlacer() then
 				return
