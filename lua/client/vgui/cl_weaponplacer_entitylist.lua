@@ -37,7 +37,7 @@ function PANEL:OnRowRightClick(lineID, line)
 		for _, _line in ipairs(self:GetSelected()) do
 			weaponPlacer:RemoveSpawnedEntity(_line.prop)
 		end
-	end):SetIcon("icon16/tag_blue_edit.png")
+	end):SetIcon("icon16/delete.png")
 
 	menu:AddOption("Delete all of type", function()
 		local count = 0
@@ -50,14 +50,14 @@ function PANEL:OnRowRightClick(lineID, line)
 		end
 
 		chat.AddText(Color(0, 255, 0), "Weapon Placer: Deleted " .. count .. " entities of type " .. line:GetColumnText(2))
-	end):SetIcon("icon16/tag_blue_edit.png")
+	end):SetIcon("icon16/table_delete.png")
 
 	menu:AddOption("Delete all entities", function()
 		local count = table.Count(weaponPlacer:GetSpawnedEntities())
 
 		weaponPlacer:CleanUpProps()
 		chat.AddText(Color(0, 255, 0), "Weapon Placer: Deleted all entities!")
-	end):SetIcon("icon16/tag_blue_edit.png")
+	end):SetIcon("icon16/table_delete.png")
 
 	if #self:GetSelected() <= 1 then
 		menu:AddOption("Go To", function()
@@ -70,7 +70,7 @@ function PANEL:OnRowRightClick(lineID, line)
 			net.Start("WeaponPlacer.TeleportToWeapon")
 				net.WriteVector(pos)
 			net.SendToServer()
-		end):SetIcon("icon16/tag_blue_edit.png")
+		end):SetIcon("icon16/arrow_down.png")
 	end
 
 	menu:Open()

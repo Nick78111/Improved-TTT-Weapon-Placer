@@ -83,7 +83,7 @@ function PANEL:Init()
 
 		menu:AddOption("Load map script", function()
 			weaponPlacer:Load()
-		end):SetIcon("icon16/tag_blue_edit.png")
+		end):SetIcon("icon16/script_go.png")
 
 		menu:AddOption("Load map spawnpoints", function()
 			if not weaponPlacer:CanUseWeaponPlacer() then
@@ -92,7 +92,7 @@ function PANEL:Init()
 
 			net.Start("WeaponPlacer.RequestSpawnPoints")
 			net.SendToServer()
-		end):SetIcon("icon16/tag_blue_edit.png")
+		end):SetIcon("icon16/script_go.png")
 
 		menu:AddOption("Delete map script", function()
 			if not weaponPlacer:CanUseWeaponPlacer() then
@@ -103,7 +103,7 @@ function PANEL:Init()
 			net.SendToServer()
 
 			weaponPlacer:CleanUpProps()
-		end):SetIcon("icon16/tag_blue_edit.png")
+		end):SetIcon("icon16/delete.png")
 
 		menu:Open()
 	end

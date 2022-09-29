@@ -49,7 +49,7 @@ function PANEL:OnRowRightClick(lineID, line)
 		end
 
 		chat.AddText(Color(0, 255, 0), "Weapon Placer: Deleted " .. count .. " entities of type " .. line:GetColumnText(2))
-	end):SetIcon("icon16/tag_blue_edit.png")
+	end):SetIcon("icon16/table_delete.png")
 
 	menu:Open()
 end

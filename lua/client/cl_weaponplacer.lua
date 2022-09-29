@@ -112,6 +112,7 @@ function weaponPlacer:GetSpawnableEntities()
 
 	for _, _wep in ipairs(weapons.GetList()) do
 		local wep = weapons.Get(_wep.ClassName)
+		local _type = "Weapon"
 
 		if not wep.Kind then
 			continue
@@ -121,12 +122,16 @@ function weaponPlacer:GetSpawnableEntities()
 			continue
 		end
 
+		if wep.CanBuy then
+			_type = "Role Weapon"
+		end
+
 		self.spawnableEntities[wep.ClassName] = {
 			class = wep.ClassName,
 			name = LANG.TryTranslation(wep.PrintName) or false,
 			model = (wep.WorldModel and wep.WorldModel ~= "") and wep.WorldModel or "models/weapons/w_rif_m4a1.mdl",
 			ammo = wep.AmmoEnt or false,
-			type = "Weapon"
+			type = _type
 		}
 
 		if wep.AmmoEnt and not self.spawnableEntities[wep.AmmoEnt] then
