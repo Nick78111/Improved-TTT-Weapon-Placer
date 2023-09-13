@@ -12,6 +12,7 @@ weaponPlacer.settings = {
 	freeze = false,
 	noclip = false,
 	replaceSpawns = false,
+	replaceWeapons = false,
 	hideWeapons = false,
 	hidePlayers = false
 }
@@ -258,14 +259,14 @@ function weaponPlacer:RemoveSpawnedEntity(entity)
 	self:GetSpawnedEntities()[entity] = nil
 end
 
-function weaponPlacer:AddItem(class, pos, ang)
+function weaponPlacer:AddItem(class, pos, ang, freeze)
 	local spawnableEntity = self:GetSpawnableEntityFromClass(class)
 
 	if not spawnableEntity then
 		return
 	end
 
-	local spawnedEntity = self:CreateProp(class, pos, ang)
+	local spawnedEntity = self:CreateProp(class, pos, ang, freeze)
 
 	if not spawnedEntity then
 		return
@@ -283,7 +284,7 @@ function weaponPlacer:AddItem(class, pos, ang)
 	self.menu.spawnedEntities.VBar:SetScroll(self.menu.spawnedEntities.VBar.CanvasSize)
 end
 
-function weaponPlacer:CreateProp(class, pos, ang)
+function weaponPlacer:CreateProp(class, pos, ang, freeze)
 	local spawnableEntity = self:GetSpawnableEntityFromClass(class)
 
 	if not spawnableEntity then
@@ -312,7 +313,7 @@ function weaponPlacer:CreateProp(class, pos, ang)
 	if phys:IsValid() then
 		phys:Wake()
 
-		if self:GetSetting("freeze") then
+		if self:GetSetting("freeze") or freeze then
 			phys:EnableMotion(false)
 		else
 			if not self:GetSetting("collision") then
@@ -363,9 +364,9 @@ function weaponPlacer:Save()
 		return
 	end
 
-	local buff = "setting:\treplacespawns %s\n"
+	local buff = "setting:\treplacespawns %s\nsetting:\treplaceweapons %s\n"
 
-	buff = string.format(buff, self:GetSetting("replaceSpawns") == true and "1" or "0")
+	buff = string.format(buff, self:GetSetting("replaceSpawns") == true and "1" or "0", self:GetSetting("replaceWeapons") == true and "1" or "0")
 
 	for _, entData in SortedPairsByMemberValue(self:GetSpawnedEntities(), "class", false) do
 		local str = string.format("%s\t%s\t%s\n", entData.class, tostring(entData.prop:GetPos()), tostring(entData.prop:GetAngles()))
@@ -387,13 +388,14 @@ function weaponPlacer:LoadScript(script)
 	local entityList = self:GetEntitiesFromScript(script)
 
 	for _, data in ipairs(entityList) do
-		self:AddItem(data.class, data.pos, data.ang)
+		self:AddItem(data.class, data.pos, data.ang, true)
 	end
 
 	local settings = self:GetSettingsFromScript(script)
 
 	if settings then
 		self:SetSetting("replaceSpawns", tobool(settings.replacespawns), true)
+		self:SetSetting("replaceWeapons", tobool(settings.replaceweapons), true)
 	end
 
 	chat.AddText(Color(0, 255, 0), "Weapon Placer: Loaded spawn script!")
@@ -483,4 +485,26 @@ net.Receive("WeaponPlacer.SendSpawnPoints", function()
 	weaponPlacer:SetSetting("replaceSpawns", true, true)
 
 	chat.AddText(Color(0, 255, 0), "Weapon Placer: Loaded spawnpoints!")
+end)
+
+net.Receive("WeaponPlacer.SendMapCreatedEntities", function()
+	if not weaponPlacer:CanUseWeaponPlacer() then
+		return
+	end
+
+	local mapEntities = net.ReadTable()
+
+	for entity, data in pairs(weaponPlacer:GetSpawnedEntities()) do
+		if data.class != "info_player_deathmatch" then
+			weaponPlacer:RemoveSpawnedEntity(entity)
+		end
+	end
+
+	for _, entData in ipairs(mapEntities) do
+		weaponPlacer:AddItem(entData.class, entData.pos, entData.ang, true)
+	end
+
+	weaponPlacer:SetSetting("replaceWeapons", true, true)
+
+	chat.AddText(Color(0, 255, 0), "Weapon Placer: Loaded map created entities!")
 end)

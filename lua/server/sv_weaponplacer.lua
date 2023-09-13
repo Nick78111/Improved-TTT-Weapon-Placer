@@ -6,8 +6,16 @@ util.AddNetworkString("WeaponPlacer.SendScript")
 util.AddNetworkString("WeaponPlacer.RequestSpawnPoints")
 util.AddNetworkString("WeaponPlacer.SendSpawnPoints")
 util.AddNetworkString("WeaponPlacer.DeleteMapScript")
+util.AddNetworkString("WeaponPlacer.RequestMapCreatedEntities")
+util.AddNetworkString("WeaponPlacer.SendMapCreatedEntities")
 
 CreateConVar("weapon_placer_enabled", 1, FCVAR_ARCHIVE, "Enable/Disable weapon spawn script", 0, 1)
+
+concommand.Add("weaponplacer", function(ply, cmd, args, str)
+	if IsValid(ply) then
+		ply:Give("ttt_weapon_placer")
+	end
+end)
 
 weaponPlacer.mapSpawnPoints = weaponPlacer.mapSpawnPoints or nil
 
@@ -130,7 +138,7 @@ function weaponPlacer:SendMapSpawnPoints(ply)
 		return
 	end
 
-	if not self.mapSpawnPoints or #self.mapSpawnPoints == 0 then
+	if not self.mapSpawnPoints or table.IsEmpty(self.mapSpawnPoints) then
 		ply:SendLua("chat.AddText(Color(255, 0, 0), 'Weapon Placer: This map has no spawnpoints!')")
 		return
 	end
@@ -139,6 +147,21 @@ function weaponPlacer:SendMapSpawnPoints(ply)
 		-- Using WriteTable should be safe on the server since this requires superadmin privileges,
 		-- if your admins are crashing your server, not my problem...
 		net.WriteTable(self.mapSpawnPoints)
+	net.Send(ply)
+end
+
+function weaponPlacer:SendMapCreatedEntities(ply)
+	if not self:CanUseWeaponPlacer(ply) then
+		return
+	end
+
+	if not self.mapEntities or table.IsEmpty(self.mapEntities) then
+		ply:SendLua("chat.AddText(Color(255, 0, 0), 'Weapon Placer: This map has no weapon or ammo spawns!')")
+		return
+	end
+
+	net.Start("WeaponPlacer.SendMapCreatedEntities")
+		net.WriteTable(self.mapEntities)
 	net.Send(ply)
 end
 
@@ -187,6 +210,10 @@ net.Receive("WeaponPlacer.RequestSpawnPoints", function(len, ply)
 	weaponPlacer:SendMapSpawnPoints(ply)
 end)
 
+net.Receive("WeaponPlacer.RequestMapCreatedEntities", function(len, ply)
+	weaponPlacer:SendMapCreatedEntities(ply)
+end)
+
 net.Receive("WeaponPlacer.DeleteMapScript", function(len, ply)
 	if not weaponPlacer:CanUseWeaponPlacer(ply) then
 		return
@@ -224,5 +251,75 @@ end)
 hook.Add("PlayerDisconnected", "WeaponPlacerPlayerDropped", function(ply)
 	if IsValid(ply:GetWeapon("ttt_weapon_placer")) then
 		weaponPlacer:RestartRound()
+	end
+end)
+
+hook.Add("Initialize", "WeaponPlacerDisableSpawnScripts", function()
+	GetConVar("ttt_use_weapon_spawn_scripts"):SetBool(false)
+end)
+
+hook.Add("InitPostEntity", "WeaponPlacerGetMapEntities", function()
+	if not weaponPlacer.mapEntities then
+		weaponPlacer.mapEntities = {}
+
+		 for _, class in ipairs(ents.TTT.GetSpawnableAmmo()) do
+			for _, ent in ipairs(ents.FindByClass(class)) do
+				if ent:CreatedByMap() then
+					table.insert(weaponPlacer.mapEntities, {
+						class = class,
+						pos = ent:GetPos(),
+						ang = ent:GetAngles()
+					})
+				end
+			end
+		end
+
+		for _, spawnableEnt in ipairs(ents.TTT.GetSpawnableSWEPs()) do
+			local class = WEPS.GetClass(spawnableEnt)
+			for _, ent in ipairs(ents.FindByClass(class)) do
+				if ent:CreatedByMap() then
+					table.insert(weaponPlacer.mapEntities, {
+						class = class,
+						pos = ent:GetPos(),
+						ang = ent:GetAngles()
+					})
+				end
+			end
+		end
+
+		for _, ent in ipairs(ents.FindByClass("ttt_random_ammo")) do
+			if ent:CreatedByMap() then
+				table.insert(weaponPlacer.mapEntities, {
+					class = "ttt_random_ammo",
+					pos = ent:GetPos(),
+					ang = ent:GetAngles()
+				})
+			end
+		end
+
+		for _, ent in ipairs(ents.FindByClass("ttt_random_weapon")) do
+			if ent:CreatedByMap() then
+				table.insert(weaponPlacer.mapEntities, {
+					class = "ttt_random_weapon",
+					pos = ent:GetPos(),
+					ang = ent:GetAngles()
+				})
+			end
+		end
+	end
+
+	if not weaponPlacer.mapSpawnPoints then
+		weaponPlacer.mapSpawnPoints = {}
+
+		local spawnEntities = GetSpawnEnts(false, true)
+
+		if spawnEntities then
+			for i, ent in ipairs(spawnEntities) do
+				weaponPlacer.mapSpawnPoints[i] = {
+					pos = ent:GetPos(),
+					ang = ent:GetAngles()
+				}
+			end
+		end
 	end
 end)

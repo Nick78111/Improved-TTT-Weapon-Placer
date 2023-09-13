@@ -115,26 +115,9 @@ function weaponPlacer:ImportEntities()
 end
 
 function weaponPlacer.PrepareRound()
-	if not weaponPlacer.mapSpawnPoints then
-		weaponPlacer.mapSpawnPoints = {}
-
-		local spawnEntities = GetSpawnEnts(false, true)
-
-		if spawnEntities then
-			for i, ent in ipairs(spawnEntities) do
-				weaponPlacer.mapSpawnPoints[i] = {
-					pos = ent:GetPos(),
-					ang = ent:GetAngles()
-				}
-			end
-		end
-	end
-
 	if not GetConVar("weapon_placer_enabled"):GetBool() then
 		return
 	end
-
-	GetConVar("ttt_use_weapon_spawn_scripts"):SetBool(false)
 
 	local weaponPlacerFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(), "DATA")
 	local tttFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(true), "MOD")
@@ -149,11 +132,14 @@ function weaponPlacer.PrepareRound()
 
 	local settings = weaponPlacer:GetSettingsFromScript()
 
-	if (tobool(settings.replacespawns)) then
+	if tobool(settings.replacespawns) then
 		weaponPlacer:RemoveSpawnEntities()
 	end
 
-	weaponPlacer:RemoveWeaponEntities()
+	if tobool(settings.replaceweapons) then
+		weaponPlacer:RemoveWeaponEntities()
+	end
+
 	weaponPlacer:ImportEntities()
 end
 

@@ -23,6 +23,10 @@ function PANEL:Init()
 		weaponPlacer:SetSetting("replaceSpawns", data == 1 and true or false)
 	end)
 
+	self:CreateSetting("WEAPON SPAWNING", "Replace Weapons", "Replace existing weapon spawns or add to them", "Boolean", "replaceWeapons", function(pnl, data)
+		weaponPlacer:SetSetting("replaceWeapons", data == 1 and true or false)
+	end)
+
 	self:CreateSetting("WEAPON SPAWNING", "Spawn Ammo", "Spawns the currently selected weapon's ammo", "Boolean", "spawnAmmo", function(pnl, data)
 		local bool = data == 1 and true or false
 

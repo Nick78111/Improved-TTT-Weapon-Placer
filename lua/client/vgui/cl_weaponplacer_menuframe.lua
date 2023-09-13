@@ -85,12 +85,25 @@ function PANEL:Init()
 			weaponPlacer:Load()
 		end):SetIcon("icon16/script_go.png")
 
-		menu:AddOption("Load map spawnpoints", function()
+		menu:AddOption("Load spawnpoints from map", function()
 			if not weaponPlacer:CanUseWeaponPlacer() then
 				return
 			end
 
+			weaponPlacer:SetSetting("replaceSpawns", true, true)
+
 			net.Start("WeaponPlacer.RequestSpawnPoints")
+			net.SendToServer()
+		end):SetIcon("icon16/script_go.png")
+
+		menu:AddOption("Load weapons/ammo from map", function()
+			if not weaponPlacer:CanUseWeaponPlacer() then
+				return
+			end
+
+			weaponPlacer:SetSetting("replaceAmmo", true, true)
+
+			net.Start("WeaponPlacer.RequestMapCreatedEntities")
 			net.SendToServer()
 		end):SetIcon("icon16/script_go.png")
 
@@ -98,6 +111,9 @@ function PANEL:Init()
 			if not weaponPlacer:CanUseWeaponPlacer() then
 				return
 			end
+
+			weaponPlacer:SetSetting("replaceSpawns", false, true)
+			weaponPlacer:SetSetting("replaceWeapons", false, true)
 
 			net.Start("WeaponPlacer.DeleteMapScript")
 			net.SendToServer()
