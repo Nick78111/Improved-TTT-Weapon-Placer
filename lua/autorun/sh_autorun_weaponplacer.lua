@@ -1,4 +1,4 @@
-if game.SinglePlayer() or engine.ActiveGamemode() != "terrortown" then
+if engine.ActiveGamemode() != "terrortown" then
 	return
 end
 
