@@ -1,3 +1,7 @@
+if game.SinglePlayer() or engine.ActiveGamemode() != "terrortown" then
+	return
+end
+
 if SERVER then
 	AddCSLuaFile("client/cl_weaponplacer.lua")
 	AddCSLuaFile("client/vgui/cl_weaponplacer_buttons.lua")
