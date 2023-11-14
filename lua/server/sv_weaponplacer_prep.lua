@@ -106,11 +106,14 @@ function weaponPlacer:CreateImportedEnt(class, pos, ang, kv)
 	return true
 end
 
+local classremap = {
+	ttt_playerspawn = "info_player_deathmatch"
+}
 function weaponPlacer:ImportEntities()
 	local ents = self:GetEntitiesFromScript(self:GetCurrentMapScript())
 
 	for _, ent in ipairs(ents) do
-		self:CreateImportedEnt(ent.class, ent.pos, ent.ang, ent.kv)
+		self:CreateImportedEnt(classremap[ent.class] or ent.class, ent.pos, ent.ang, ent.kv)
 	end
 end
 
