@@ -120,7 +120,7 @@ function weaponPlacer.PrepareRound()
 	end
 
 	local weaponPlacerFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(), "DATA")
-	local tttFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(true), "MOD")
+	local tttFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(true), "GAME")
 
 	if not weaponPlacerFileExists then
 		if not tttFileExists then
