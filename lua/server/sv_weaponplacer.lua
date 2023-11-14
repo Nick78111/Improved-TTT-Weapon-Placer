@@ -255,10 +255,18 @@ hook.Add("PlayerDisconnected", "WeaponPlacerPlayerDropped", function(ply)
 end)
 
 hook.Add("Initialize", "WeaponPlacerDisableSpawnScripts", function()
+	if not GetConVar("weapon_placer_enabled"):GetBool() then
+		return
+	end
+
 	GetConVar("ttt_use_weapon_spawn_scripts"):SetBool(false)
 end)
 
 hook.Add("InitPostEntity", "WeaponPlacerGetMapEntities", function()
+	if not GetConVar("weapon_placer_enabled"):GetBool() then
+		return
+	end
+
 	if not weaponPlacer.mapEntities then
 		weaponPlacer.mapEntities = {}
 
