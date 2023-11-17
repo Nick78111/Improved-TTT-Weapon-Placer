@@ -22,7 +22,7 @@ weaponPlacer.mapSpawnPoints = weaponPlacer.mapSpawnPoints or nil
 function weaponPlacer:GetCurrentMapScript(useTTT)
 	local map = game.GetMap()
 	local fileName = self:GetCurrentMapScriptName(useTTT)
-	return file.Read(fileName, useTTT and "MOD" or "DATA")
+	return file.Read(fileName, useTTT and "GAME" or "DATA")
 end
 
 function weaponPlacer:GetCurrentMapScriptName(useTTT)
@@ -98,7 +98,7 @@ function weaponPlacer:ConvertCurrentMapScriptToWeaponPlacerScript()
 	local tttFileName = self:GetCurrentMapScriptName(true)
 	local weaponPlacerFileName = self:GetCurrentMapScriptName()
 
-	if not file.Exists(tttFileName, "MOD") then
+	if not file.Exists(tttFileName, "GAME") then
 		return false
 	end
 
@@ -255,10 +255,18 @@ hook.Add("PlayerDisconnected", "WeaponPlacerPlayerDropped", function(ply)
 end)
 
 hook.Add("Initialize", "WeaponPlacerDisableSpawnScripts", function()
+	if not GetConVar("weapon_placer_enabled"):GetBool() then
+		return
+	end
+
 	GetConVar("ttt_use_weapon_spawn_scripts"):SetBool(false)
 end)
 
 hook.Add("InitPostEntity", "WeaponPlacerGetMapEntities", function()
+	if not GetConVar("weapon_placer_enabled"):GetBool() then
+		return
+	end
+
 	if not weaponPlacer.mapEntities then
 		weaponPlacer.mapEntities = {}
 
