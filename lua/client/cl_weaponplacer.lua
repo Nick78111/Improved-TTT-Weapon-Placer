@@ -36,8 +36,8 @@ function weaponPlacer:SetSetting(setting, val, editPnl)
 		return
 	end
 
-	if editPnl and self.menu then
-		local pnl = self.menu:GetSettingPanel(setting)
+	if editPnl and self:GetMenu() then
+		local pnl = self:GetMenu():GetSettingPanel(setting)
 
 		if pnl then
 			pnl:SetValue(val)
@@ -88,20 +88,26 @@ function weaponPlacer:GetSpawnableEntities()
 		return self.spawnableEntities
 	end
 
+	local roles = {
+		[ROLE_TRAITOR]   = "traitor",
+		[ROLE_INNOCENT]  = "innocent",
+		[ROLE_DETECTIVE] = "detective"
+	}
+
 	self.spawnableEntities = {}
 
 	self.spawnableEntities["ttt_random_weapon"] = {
 		class = "ttt_random_weapon",
 		name = "Random Weapon",
 		model = "models/weapons/w_rif_m4a1.mdl",
-		type = "Random Weapon"
+		type = "Random"
 	}
 
 	self.spawnableEntities["ttt_random_ammo"] = {
 		class = "ttt_random_ammo",
 		name = "Random Ammo",
 		model = "models/items/boxmrounds.mdl",
-		type = "Random Ammo"
+		type = "Random"
 	}
 
 	self.spawnableEntities["info_player_deathmatch"] = {
@@ -113,7 +119,8 @@ function weaponPlacer:GetSpawnableEntities()
 
 	for _, _wep in ipairs(weapons.GetList()) do
 		local wep = weapons.Get(_wep.ClassName)
-		local _type = "Weapon"
+		local _type = "Weapons"
+		local _role
 
 		if not wep.Kind then
 			continue
@@ -124,7 +131,16 @@ function weaponPlacer:GetSpawnableEntities()
 		end
 
 		if wep.CanBuy then
-			_type = "Role Weapon"
+			_type = "Role Weapons"
+			_role = ""
+
+			for i, role in ipairs(wep.CanBuy) do
+				_role = _role .. roles[role]
+
+				if i < #wep.CanBuy then
+					_role = _role .. ", "
+				end
+			end
 		end
 
 		self.spawnableEntities[wep.ClassName] = {
@@ -132,7 +148,8 @@ function weaponPlacer:GetSpawnableEntities()
 			name = LANG.TryTranslation(wep.PrintName) or false,
 			model = (wep.WorldModel and wep.WorldModel ~= "") and wep.WorldModel or "models/weapons/w_rif_m4a1.mdl",
 			ammo = wep.AmmoEnt or false,
-			type = _type
+			type = _type,
+			role = _role or nil
 		}
 
 		if wep.AmmoEnt and not self.spawnableEntities[wep.AmmoEnt] then
@@ -234,9 +251,9 @@ end
 function weaponPlacer:CleanUpProps()
 	if not table.IsEmpty(self:GetSpawnedEntities()) then
 		for _, spawnedEntity in pairs(self:GetSpawnedEntities()) do
-			if spawnedEntity.prop:IsValid() then
+			if IsValid(spawnedEntity.prop) then
+				self:GetMenu():RemoveSpawnedEntity(spawnedEntity.prop)
 				spawnedEntity.prop:Remove()
-				self.menu:RemoveSpawnedEntity(spawnedEntity.line)
 			end
 		end
 	end
@@ -254,8 +271,9 @@ function weaponPlacer:RemoveSpawnedEntity(entity)
 		return
 	end
 
-	self.menu:RemoveSpawnedEntity(spawnedEntity.line)
+	self:GetMenu():RemoveSpawnedEntity(spawnedEntity.prop)
 	spawnedEntity.prop:Remove()
+
 	self:GetSpawnedEntities()[entity] = nil
 end
 
@@ -275,13 +293,10 @@ function weaponPlacer:AddItem(class, pos, ang, freeze)
 	local tmp = {
 		class = class,
 		prop = spawnedEntity,
-		line = self.menu:AddSpawnedEntity(spawnedEntity, class)
+		button = self:GetMenu():AddSpawnedEntity(spawnedEntity, class)
 	}
 
 	self:GetSpawnedEntities()[spawnedEntity] = tmp
-
-	self.menu.spawnedEntities.VBar:InvalidateParent(true)
-	self.menu.spawnedEntities.VBar:SetScroll(self.menu.spawnedEntities.VBar.CanvasSize)
 end
 
 function weaponPlacer:CreateProp(class, pos, ang, freeze)
@@ -332,7 +347,7 @@ function weaponPlacer:OpenMenu()
 		return
 	end
 
-	if not self.menu or not self.menu:IsValid() then
+	if not self:GetMenu() or not self:GetMenu():IsValid() then
 		self.menu = vgui.Create("WepPlacerMenuFrame")
 		self:GetSpawnableEntities()
 		self:SetNoDrawMapWeapons(self:GetSetting("hideWeapons"))
@@ -345,18 +360,20 @@ function weaponPlacer:OpenMenu()
 end
 
 function weaponPlacer:CloseMenu(remove)
-	if not IsValid(self.menu) then
+	if not IsValid(self:GetMenu()) then
 		return
 	end
 
-	self.menu:SetVisible(false)
+	self:GetMenu():SetVisible(false)
 
 	if remove then
 		self:ResetSettings()
 
-		self.menu:Remove()
+		self:GetMenu():Remove()
 		hook.Remove("PlayerTick", "wep_placer_think")
 	end
+
+	CloseDermaMenus()
 end
 
 function weaponPlacer:Save()
@@ -451,6 +468,10 @@ function weaponPlacer:SetNoDrawMapWeapons(bool)
 			end
 		end
 	end
+end
+
+function weaponPlacer:GetMenu()
+	return self.menu
 end
 
 net.Receive("WeaponPlacer.SendScript", function()

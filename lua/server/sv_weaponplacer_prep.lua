@@ -34,6 +34,10 @@ local hl2_ammo_replace = {
 	["item_item_crate"] = "ttt_random_ammo"
 }
 
+local classremap = {
+	ttt_playerspawn = "info_player_deathmatch"
+}
+
 function weaponPlacer:RemoveSpawnEntities()
 	for i, ent in ipairs(GetSpawnEnts(false, true)) do
 		ent.BeingRemoved = true
@@ -106,9 +110,6 @@ function weaponPlacer:CreateImportedEnt(class, pos, ang, kv)
 	return true
 end
 
-local classremap = {
-	ttt_playerspawn = "info_player_deathmatch"
-}
 function weaponPlacer:ImportEntities()
 	local ents = self:GetEntitiesFromScript(self:GetCurrentMapScript())
 
@@ -135,15 +136,19 @@ function weaponPlacer.PrepareRound()
 
 	local settings = weaponPlacer:GetSettingsFromScript()
 
-	if tobool(settings.replacespawns) then
-		weaponPlacer:RemoveSpawnEntities()
-	end
+	hook.Add("Tick", "WeaponPlacerPostCleanUpTick", function()
+		if tobool(settings.replacespawns) then
+			weaponPlacer:RemoveSpawnEntities()
+		end
 
-	if tobool(settings.replaceweapons) then
-		weaponPlacer:RemoveWeaponEntities()
-	end
+		if tobool(settings.replaceweapons) then
+			weaponPlacer:RemoveWeaponEntities()
+		end
 
-	weaponPlacer:ImportEntities()
+		weaponPlacer:ImportEntities()
+
+		hook.Remove("Tick", "WeaponPlacerPostCleanUpTick")
+	end)
 end
 
 hook.Add("TTTPrepareRound", "WeaponPlacerBeginRound", weaponPlacer.PrepareRound)

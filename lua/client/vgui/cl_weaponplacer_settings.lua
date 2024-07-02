@@ -1,33 +1,25 @@
 local PANEL = {}
 
 function PANEL:Init()
-	local SKIN = table.Copy(derma.GetNamedSkin("Default"))
-	SKIN.Colours.Properties.Title = {r = 135, g = 206, b = 250, a = 255} -- yeah...
-	derma.DefineSkin("WepPlacerDprop", "Weapon Placer Dprop Skin", SKIN)
-
 	self.settings = {}
 
-	self:SetSkin("WepPlacerDprop")
+	self:SetSkin("WepPlacerSkin")
 
 	self:Dock(FILL)
+	self:InvalidateLayout(true)
+	self:InvalidateParent(true)
 
-	local vBar = self:GetCanvas():GetVBar()
+	self:GetCanvas().VBar:SetWide(5)
 
-	vBar:SetWide(7)
-	vBar.Paint = function(self, w, h) draw.RoundedBox(0, 0, 0, w, h, Color(0, 0, 0, 100)) end
-	vBar.btnUp.Paint = function(self, w, h) draw.RoundedBox(0, 0, 0, w, h, Color(135, 206, 250, 255)) end
-	vBar.btnDown.Paint = function(self, w, h) draw.RoundedBox(0, 0, 0, w, h, Color(135, 206, 250, 255)) end
-	vBar.btnGrip.Paint = function(self, w, h) draw.RoundedBox(0, 0, 0, w, h, Color(135, 206, 250, 255)) end
-
-	self:CreateSetting("SPAWNPOINTS", "Replace Spawns", 'Replace exisiting player spawnpoints or "Add" to them', "Boolean", "replaceSpawns", function(pnl, data)
+	self:CreateSetting("Spawn Points", "Replace Spawns", 'Replace exisiting player spawnpoints or "Add" to them', "Boolean", "replaceSpawns", function(pnl, data)
 		weaponPlacer:SetSetting("replaceSpawns", data == 1 and true or false)
 	end)
 
-	self:CreateSetting("WEAPON SPAWNING", "Replace Weapons", "Replace existing weapon spawns or add to them", "Boolean", "replaceWeapons", function(pnl, data)
+	self:CreateSetting("Weapon Spawning", "Replace Weapons", "Replace existing weapon spawns or add to them", "Boolean", "replaceWeapons", function(pnl, data)
 		weaponPlacer:SetSetting("replaceWeapons", data == 1 and true or false)
 	end)
 
-	self:CreateSetting("WEAPON SPAWNING", "Spawn Ammo", "Spawns the currently selected weapon's ammo", "Boolean", "spawnAmmo", function(pnl, data)
+	self:CreateSetting("Weapon Spawning", "Spawn Ammo", "Spawns the currently selected weapon's ammo", "Boolean", "spawnAmmo", function(pnl, data)
 		local bool = data == 1 and true or false
 
 		weaponPlacer:SetSetting("spawnAmmo", bool)
@@ -39,36 +31,34 @@ function PANEL:Init()
 		weaponPlacer:SelectClass(weaponPlacer:GetSelectedClass(), bool)
 	end)
 
-	self:CreateSetting("WEAPON SPAWNING", "Enable Collisions", "Enables collisions with spawned entities (Don't recommend)", "Boolean", "collision", function(pnl, data)
+	self:CreateSetting("Weapon Spawning", "Enable Collisions", "Enables collisions with spawned entities (Don't recommend)", "Boolean", "collision", function(pnl, data)
 		weaponPlacer:SetSetting("collision", data == 1 and true or false)
 	end)
 
-	self:CreateSetting("WEAPON SPAWNING", "Freeze Entities", "Freezes spawned entities", "Boolean", "freeze", function(pnl, data)
+	self:CreateSetting("Weapon Spawning", "Freeze Entities", "Freezes spawned entities", "Boolean", "freeze", function(pnl, data)
 		weaponPlacer:SetSetting("freeze", data == 1 and true or false)
 	end)
 
-	self:CreateSetting("PLAYER", "Enable Noclip", "Enables noclip mode", "Boolean", "noclip", function(pnl, data)
+	self:CreateSetting("Player", "Enable Noclip", "Enables noclip mode", "Boolean", "noclip", function(pnl, data)
 		local bool = data == 1 and true or false
 		weaponPlacer:SetNoclip(bool)
 		weaponPlacer:SetSetting("noclip", bool)
 	end)
 
-	self:CreateSetting("WORLD", "Hide Map Entities", "Hide the current weapons and ammo on the map", "Boolean", "hideWeapons", function(pnl, data)
+	self:CreateSetting("Player", "Hide Map Entities", "Hide the current weapons and ammo on the map", "Boolean", "hideWeapons", function(pnl, data)
 		local bool = data == 1 and true or false
 		weaponPlacer:SetSetting("hideWeapons", bool)
 		weaponPlacer:SetNoDrawMapWeapons(bool)
 	end)
 
-	self:CreateSetting("WORLD", "Hide Players", "Hide other players", "Boolean", "hideWeapons", function(pnl, data)
+	self:CreateSetting("Player", "Hide Players", "Hide other players", "Boolean", "hideWeapons", function(pnl, data)
 		local bool = data == 1 and true or false
 		weaponPlacer:SetSetting("hidePlayers", bool)
 		weaponPlacer:SetNodrawPlayers(bool)
 	end)
 
 	for name, cat in pairs(self.Categories) do
-		cat.Paint = function(self, w, h)
-			return
-		end
+		cat.Label:SetFont("WeaponPlacerFont")
 
 		cat.Container.Paint = function(self, w, h)
 			return
@@ -76,19 +66,6 @@ function PANEL:Init()
 
 		cat.Header.Paint = function(self, w, h)
 			draw.RoundedBox(0, 0, 0, w, h, Color(30, 30, 30, 255))
-		end
-
-		for rName, row in pairs(cat.Rows) do
-			row.Label:SetFont("DermaDefault")
-			row.Label:SetTextColor(Color(255, 255, 255, 255))
-
-			row.Paint = function(self, w, h)
-				return
-			end
-
-			row.Panel.Paint = function(self, w, h)
-				return
-			end
 		end
 	end
 end

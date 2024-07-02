@@ -120,7 +120,7 @@ function SWEP:DrawHUD()
 	curEnt = (curEnt and curEnt.class) and curEnt.class or "None"
 
 	local entText = "Selected Entity: " .. curEnt
-	local openText = curEnt ~= "None" and "Hold G or R to rotate entities" or "Hold Z to open menu"
+	local openText = curEnt ~= "None" and "Hold E or R to rotate entities" or "Hold Z to open menu"
 
 	surface.SetFont("DebugFixed")
 	local eth = select(2, surface.GetTextSize(entText))
@@ -148,7 +148,7 @@ function SWEP:Think()
 	if prop then
 		local tr = util.GetPlayerTrace(self:GetOwner())
 		local trace = util.TraceEntity(tr, prop)
-		local rotate = (input.IsKeyDown(KEY_R) and 1 or input.IsKeyDown(KEY_G) and 0) or false
+		local rotate = (input.IsKeyDown(KEY_R) and 1 or input.IsKeyDown(KEY_E) and 0) or false
 
 		prop:SetPos(trace.HitPos)
 
@@ -157,6 +157,17 @@ function SWEP:Think()
 			local rotation = rotate == 0 and angs.y + (RealFrameTime() * 100) or angs.y - (RealFrameTime() * 100)
 
 			prop:SetLocalAngles(Angle(0, rotation, 0))
+		end
+	end
+
+	if input.WasMousePressed(MOUSE_MIDDLE) then
+		local class = weaponPlacer:GetSelectedClass()
+		if class then
+			local spawnableEntity = weaponPlacer:GetWeaponAmmoFromClass(class)
+
+			if spawnableEntity then
+				weaponPlacer:AddItem(spawnableEntity.class)
+			end
 		end
 	end
 

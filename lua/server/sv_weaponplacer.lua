@@ -22,11 +22,13 @@ weaponPlacer.mapSpawnPoints = weaponPlacer.mapSpawnPoints or nil
 function weaponPlacer:GetCurrentMapScript(useTTT)
 	local map = game.GetMap()
 	local fileName = self:GetCurrentMapScriptName(useTTT)
+
 	return file.Read(fileName, useTTT and "GAME" or "DATA")
 end
 
 function weaponPlacer:GetCurrentMapScriptName(useTTT)
 	local map = game.GetMap()
+
 	return useTTT and "maps/" .. map .. "_ttt.txt" or "weaponplacer/maps/" .. map .. ".txt"
 end
 
@@ -87,9 +89,9 @@ function weaponPlacer:SaveScript(str, ply)
 	file.CreateDir("weaponplacer/maps")
 	file.Write(fileName, buff)
 
-	if ents.FindByClass("info_player_start") then
+	--if ents.FindByClass("info_player_start") then
 		--ply:SendLua('chat.AddText(Color(255, 255, 0), [[Weapon Placer: Warning! This map uses info_player_start for spawning. Creating your own spawns are recommended]])')
-	end
+	--end
 
 	ply:SendLua('chat.AddText(Color(0, 255, 0), "Weapon Placer: Entity spawns saved!")')
 end
