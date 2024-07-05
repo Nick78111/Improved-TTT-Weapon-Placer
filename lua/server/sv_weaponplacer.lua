@@ -18,12 +18,27 @@ concommand.Add("weaponplacer", function(ply, cmd, args, str)
 end)
 
 weaponPlacer.mapSpawnPoints = weaponPlacer.mapSpawnPoints or nil
+weaponPlacer.currentMapScript = weaponPlacer.currentMapScript or nil
+weaponPlacer.currentMapSettings = weaponPlacer.currentMapSettings or {}
+weaponPlacer.prepareRound = weaponPlacer.prepareRound or false
+
+function weaponPlacer:UpdateCurrentMap(delete)
+	self.currentMapScript = nil
+	self.currentMapSettings = {}
+
+	self.currentMapScript = delete and nil or self:GetCurrentMapScript()
+	self.currentMapSettings = delete and {} or self:GetSettingsFromScript()
+end
 
 function weaponPlacer:GetCurrentMapScript(useTTT)
-	local map = game.GetMap()
-	local fileName = self:GetCurrentMapScriptName(useTTT)
+	if not self.currentMapScript then
+		local map = game.GetMap()
+		local fileName = self:GetCurrentMapScriptName(useTTT)
 
-	return file.Read(fileName, useTTT and "GAME" or "DATA")
+		self.currentMapScript = file.Read(fileName, useTTT and "GAME" or "DATA")
+	end
+
+	return self.currentMapScript
 end
 
 function weaponPlacer:GetCurrentMapScriptName(useTTT)
@@ -65,7 +80,9 @@ end
 
 function weaponPlacer:DeleteCurrentMapScript()
 	local fileName = self:GetCurrentMapScriptName()
+
 	file.Delete(fileName)
+	self.currentMapScript = nil
 end
 
 function weaponPlacer:SaveScript(str, ply)
@@ -92,6 +109,8 @@ function weaponPlacer:SaveScript(str, ply)
 	--if ents.FindByClass("info_player_start") then
 		--ply:SendLua('chat.AddText(Color(255, 255, 0), [[Weapon Placer: Warning! This map uses info_player_start for spawning. Creating your own spawns are recommended]])')
 	--end
+
+	self:UpdateCurrentMap()
 
 	ply:SendLua('chat.AddText(Color(0, 255, 0), "Weapon Placer: Entity spawns saved!")')
 end
@@ -222,6 +241,7 @@ net.Receive("WeaponPlacer.DeleteMapScript", function(len, ply)
 	end
 
 	weaponPlacer:DeleteCurrentMapScript()
+	weaponPlacer:UpdateCurrentMap(true)
 
 	ply:SendLua("chat.AddText(Color(0, 255, 0), 'Weapon Placer: Spawn script deleted!')")
 end)

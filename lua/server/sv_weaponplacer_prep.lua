@@ -34,9 +34,20 @@ local hl2_ammo_replace = {
 	["item_item_crate"] = "ttt_random_ammo"
 }
 
-local classremap = {
-	ttt_playerspawn = "info_player_deathmatch"
+local spawnTypes = {
+	["info_player_deathmatch"] = true,
+	["info_player_combine"] = true,
+	["info_player_rebel"] = true,
+	["info_player_counterterrorist"] = true,
+	["info_player_terrorist"] = true,
+	["info_player_axis"] = true,
+	["info_player_allies"] = true,
+	["gmod_player_start"] = true,
+	["info_player_teamspawn"] = true,
+	["info_player_start"] = true
 }
+
+local weaponPlacerSpawnIDs = weaponPlacerSpawnIDs or {}
 
 function weaponPlacer:RemoveSpawnEntities()
 	for i, ent in ipairs(GetSpawnEnts(false, true)) do
@@ -48,20 +59,18 @@ end
 function weaponPlacer:RemoveReplaceables()
 	for _, ent in ipairs(ents.FindByClass("item_*")) do
 		if hl2_ammo_replace[ent:GetClass()] then
-			ent:Remove()
+			if ent:CreatedByMap() then
+				ent:Remove()
+			end
 		end
 	 end
 
 	for _, ent in ipairs(ents.FindByClass("weapon_*")) do
 		if hl2_weapon_replace[ent:GetClass()] then
-			ent:Remove()
+			if ent:CreatedByMap() then
+				ent:Remove()
+			end
 		end
-	end
-end
-
-function weaponPlacer:RemoveCrowbars()
-	for _, ent in ipairs(ents.FindByClass("weapon_zm_improvised)")) do
-		ent:Remove()
 	end
 end
 
@@ -70,19 +79,20 @@ function weaponPlacer:RemoveWeaponEntities()
 
 	for _, class in ipairs(ents.TTT.GetSpawnableAmmo()) do
 		for _, ent in ipairs(ents.FindByClass(class)) do
-			ent:Remove()
+			if ent:CreatedByMap() then
+				ent:Remove()
+			end
 		end
 	end
 
 	for _, spawnableEnt in ipairs(ents.TTT.GetSpawnableSWEPs()) do
 		local class = WEPS.GetClass(spawnableEnt)
 		for _, ent in ipairs(ents.FindByClass(class)) do
-			ent:Remove()
+			if ent:CreatedByMap() then
+				ent:Remove()
+			end
 		end
 	end
-
-	ents.TTT.RemoveRagdolls(false)
-	self:RemoveCrowbars()
 end
 
 function weaponPlacer:CreateImportedEnt(class, pos, ang, kv)
@@ -91,6 +101,10 @@ function weaponPlacer:CreateImportedEnt(class, pos, ang, kv)
 	end
 
 	local ent = ents.Create(class)
+
+	if ent.class == "info_player_deathmatch" then
+		ent.weaponPlacer = true
+	end
 
 	if not IsValid(ent) then
 		--MsgC(Color(255, 0, 0), "Weapon Placer: Invalid weapon: " .. class .. " on map: " .. game.GetMap() .. "\n")
@@ -110,45 +124,58 @@ function weaponPlacer:CreateImportedEnt(class, pos, ang, kv)
 	return true
 end
 
-function weaponPlacer:ImportEntities()
+function weaponPlacer:ImportEntities(spawnsOnly)
 	local ents = self:GetEntitiesFromScript(self:GetCurrentMapScript())
 
 	for _, ent in ipairs(ents) do
-		self:CreateImportedEnt(classremap[ent.class] or ent.class, ent.pos, ent.ang, ent.kv)
+		if spawnsOnly and not spawnTypes[ent.class] then
+			continue
+		end
+
+		if not spawnsOnly and spawnTypes[ent.class] then
+			continue
+		end
+
+		self:CreateImportedEnt(ent.class, ent.pos, ent.ang, ent.kv)
 	end
 end
 
-function weaponPlacer.PrepareRound()
-	if not GetConVar("weapon_placer_enabled"):GetBool() then
-		return
-	end
+hook.Add("TTTPrepareRound", "WeaponPlacerBeginRound", function()
+	weaponPlacer.prepareRound = true
+end)
 
-	local weaponPlacerFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(), "DATA")
-	local tttFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(true), "GAME")
-
-	if not weaponPlacerFileExists then
-		if not tttFileExists then
-			return
+function weaponPlacer.PostCleanupMap()
+	if weaponPlacer.prepareRound then
+		if not GetConVar("weapon_placer_enabled"):GetBool() then
+			return nil
 		end
 
-		weaponPlacer:ConvertCurrentMapScriptToWeaponPlacerScript()
-	end
+		local weaponPlacerFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(), "DATA")
 
-	local settings = weaponPlacer:GetSettingsFromScript()
+		if not weaponPlacerFileExists then
+			local tttFileExists = file.Exists(weaponPlacer:GetCurrentMapScriptName(true), "GAME")
 
-	hook.Add("Tick", "WeaponPlacerPostCleanUpTick", function()
-		if tobool(settings.replacespawns) then
+			if not tttFileExists then
+				return nil
+			end
+
+			weaponPlacer:ConvertCurrentMapScriptToWeaponPlacerScript()
+		end
+
+		if weaponPlacer:GetSettingsFromScript().replacespawns then
 			weaponPlacer:RemoveSpawnEntities()
 		end
 
-		if tobool(settings.replaceweapons) then
+		weaponPlacer:ImportEntities(true)
+
+		if weaponPlacer:GetSettingsFromScript().replaceweapons then
 			weaponPlacer:RemoveWeaponEntities()
 		end
 
 		weaponPlacer:ImportEntities()
 
-		hook.Remove("Tick", "WeaponPlacerPostCleanUpTick")
-	end)
+		weaponPlacer.prepareRound = false
+	end
 end
 
-hook.Add("TTTPrepareRound", "WeaponPlacerBeginRound", weaponPlacer.PrepareRound)
+hook.Add("PostCleanupMap", "WeaponPlacerPostCleanup", weaponPlacer.PostCleanupMap)

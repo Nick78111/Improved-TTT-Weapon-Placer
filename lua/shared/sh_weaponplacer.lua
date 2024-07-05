@@ -114,7 +114,7 @@ function weaponPlacer:GetSettingsFromScript(spawnScript)
 	local script = SERVER and self:GetCurrentMapScript() or spawnScript
 
 	if not script then
-		return
+		return {}
 	end
 
 	local settings = {}
@@ -126,7 +126,7 @@ function weaponPlacer:GetSettingsFromScript(spawnScript)
 			val = tonumber(val)
 
 			if key and val then
-				settings[key] = val
+				settings[key] = tobool(val)
 			else
 				ErrorNoHalt("Invalid weapon placer setting line " .. i .. " in " .. fileName .. "\n")
 			end

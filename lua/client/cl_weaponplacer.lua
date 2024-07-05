@@ -411,8 +411,8 @@ function weaponPlacer:LoadScript(script)
 	local settings = self:GetSettingsFromScript(script)
 
 	if settings then
-		self:SetSetting("replaceSpawns", tobool(settings.replacespawns), true)
-		self:SetSetting("replaceWeapons", tobool(settings.replaceweapons), true)
+		self:SetSetting("replaceSpawns", settings.replacespawns, true)
+		self:SetSetting("replaceWeapons", settings.replaceweapons, true)
 	end
 
 	chat.AddText(Color(0, 255, 0), "Weapon Placer: Loaded spawn script!")
